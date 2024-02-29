@@ -1,0 +1,66 @@
+model:
+  base_learning_rate: 4.5e-06
+  target: taming.models.cond_transformer.Net2NetTransformer
+  params:
+    first_stage_key: image
+    cond_stage_key: class_label
+    transformer_config:
+      target: taming.diffusion.discrete_diffusion.DiffusionTransformer
+      params:
+        backbone_config:
+          target: taming.diffusion.transformer_for_diffusion.DiscreteConditionalTransformer
+          params:
+            vocab_size: 16384
+            cond_vocab_size: 1
+            n_layer: 24
+            n_embd: 512
+            n_head: 16
+            content_seq_len: 256
+            attn_pdrop: 0.1
+            resid_pdrop: 0.1
+            diffusion_step: 100
+    first_stage_config:
+      target: taming.models.vqgan.VQModel
+      params:
+        ckpt_path: models/vqgan_imagenet_f16_16384.ckpt
+        embed_dim: 256
+        n_embed: 16384
+        ddconfig:
+          double_z: false
+          z_channels: 256
+          resolution: 256
+          in_channels: 3
+          out_ch: 3
+          ch: 128
+          ch_mult:
+          - 1
+          - 1
+          - 2
+          - 2
+          - 4
+          num_res_blocks: 2
+          attn_resolutions:
+          - 16
+          dropout: 0.0
+        lossconfig:
+          target: taming.modules.losses.vqperceptual.DummyLoss
+    cond_stage_config: __is_unconditional__
+  
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 12
+    wrap: false
+    train:
+      target: taming.data.imagenet.ImageNetTrain
+      params:
+        root: /scratch/anji/data/ImageNet/train
+        num_samples: 100000
+        config:
+          size: 256
+    validation:
+      target: taming.data.imagenet.ImageNetValidation
+      params:
+        root: /scratch/anji/data/ImageNet/val
+        config:
+          size: 256

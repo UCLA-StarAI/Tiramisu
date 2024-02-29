@@ -1,0 +1,11 @@
+exps/lvd_training/models/
+exps/lvd_training/outputs/
+exps/generate_images/images/
+exps/generate_images/models/
+exps/generate_images/taming/
+
+*.pyc
+
+vgg.pth
+
+bpe_simple_vocab_16e6.txt.gz

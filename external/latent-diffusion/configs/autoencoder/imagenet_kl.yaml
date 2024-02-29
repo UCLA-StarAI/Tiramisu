@@ -1,0 +1,60 @@
+model:
+  base_learning_rate: 4.5e-6
+  target: ldm.models.autoencoder.VQModel
+  params:
+    monitor: "val/rec_loss"
+    lossconfig:
+      target: ldm.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+      params:
+        disc_start: 50001
+        disc_weight: 0.5
+        n_classes: 8192
+  
+    embed_dim: 3
+    n_embed: 8192
+    accumulate_grad_batches: 2
+    ddconfig:
+      double_z: false
+      z_channels: 3
+      resolution: 256
+      in_channels: 3
+      out_ch: 3
+      ch: 128
+      ch_mult:
+      - 1
+      - 2
+      - 4
+      num_res_blocks: 2
+      attn_resolutions: []
+      dropout: 0.0
+
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 4
+    wrap: false
+    train:
+      target: ldm.data.taming_imagenet.ImageNetTrain
+      params:
+        root: /scratch/anji/data/ImageNet/train
+        num_samples: 100000
+        config:
+          size: 256
+    validation:
+      target: ldm.data.taming_imagenet.ImageNetValidation
+      params:
+        root: /scratch/anji/data/ImageNet/val
+        config:
+          size: 256
+
+lightning:
+  callbacks:
+    image_logger:
+      target: main.ImageLogger
+      params:
+        batch_frequency: 1000
+        max_images: 8
+        increase_log_steps: True
+
+  trainer:
+    benchmark: True

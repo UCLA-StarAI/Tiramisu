@@ -1,0 +1,25 @@
+model:
+  base_learning_rate: 4.5e-06
+  target: controlled_img_modeling.mlm.MLM
+  params:
+    vocab_size: 1024
+    block_size: 256
+    cond_vocab_size: 1 
+    cond_block_size: 1
+    n_layer: 16
+    n_head: 12
+    n_embd: 768
+    embd_pdrop: 0.0
+    resid_pdrop: 0.0
+    attn_pdrop: 0.0
+    content_emb:
+      target: taming.embeddings.dalle_embeddings.DalleMaskImageEmbedding
+      params:
+        num_embed: 1024
+        spatial_size: [16,16]
+        embed_dim: 768
+        trainable: True
+        pos_emb_type: embedding
+
+trainer:
+  accumulate_grad_batches: 1

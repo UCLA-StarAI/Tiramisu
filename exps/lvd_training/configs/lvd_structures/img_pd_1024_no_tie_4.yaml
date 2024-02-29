@@ -1,0 +1,7 @@
+lvd:
+  target: controlled_img_modeling.img_based_structures.generate_pd_circuit
+  num_latents: 1024
+  params:
+    tie_params: false
+    factor_half: false
+    input_region_size: 4

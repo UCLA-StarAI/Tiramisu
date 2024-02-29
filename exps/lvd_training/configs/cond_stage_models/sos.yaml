@@ -1,0 +1,5 @@
+cond_stage_key: none
+model:
+  target: taming.modules.util.SOSProvider
+  params:
+    sos_token: 0

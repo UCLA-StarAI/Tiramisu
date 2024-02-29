@@ -1,0 +1,37 @@
+model:
+  base_learning_rate: 2.5e-07
+  target: controlled_img_modeling.mlm.MLM
+  params:
+    vocab_size: 16384
+    block_size: 256
+    cond_vocab_size: 1 
+    cond_block_size: 1
+    n_layer: 16
+    n_head: 12
+    n_embd: 768
+    embd_pdrop: 0.0
+    resid_pdrop: 0.0
+    attn_pdrop: 0.0
+    new_mode: False
+    content_emb:
+      target: taming.embeddings.dalle_embeddings.DalleMaskImageEmbedding
+      params:
+        num_embed: 16384
+        spatial_size: [16,16]
+        embed_dim: 768
+        trainable: True
+        pos_emb_type: embedding
+
+    # scheduler_config:
+    #   target: taming.schedulers.on_plateau.ReduceLROnPlateauWithWarmup
+    #   params:
+    #     factor: 0.5
+    #     patience: 5000
+    #     min_lr: 1.0e-6
+    #     threshold: 1.0e-1
+    #     threshold_mode: rel
+    #     warmup: 2000
+    #     verbose: True
+
+trainer:
+  accumulate_grad_batches: 4

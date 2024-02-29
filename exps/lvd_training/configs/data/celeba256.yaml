@@ -1,0 +1,15 @@
+data:
+  target: tools.data.DataModuleFromConfig
+  params:
+    batch_size: 24
+    num_workers: 4
+    train:
+      target: controlled_img_modeling.data.CelebA256
+      params:
+        root: /scratch/anji/data/CelebA/
+        train: True
+    validation:
+      target: controlled_img_modeling.data.CelebA256
+      params:
+        root: /scratch/anji/data/CelebA/
+        train: False

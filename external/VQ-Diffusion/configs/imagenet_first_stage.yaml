@@ -1,0 +1,100 @@
+model:
+  base_learning_rate: 4.5e-06
+  target: image_synthesis.taming.models.vqgan.VQModel
+  params:
+    embed_dim: 256
+    n_embed: 16384
+    monitor: val/rec_loss
+    ddconfig:
+      double_z: false
+      z_channels: 256
+      resolution: 256
+      in_channels: 3
+      out_ch: 3
+      ch: 128
+      ch_mult:
+      - 1
+      - 1
+      - 2
+      - 2
+      - 4
+      num_res_blocks: 2
+      attn_resolutions:
+      - 16
+      dropout: 0.0
+    lossconfig:
+      target: image_synthesis.taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+      params:
+        disc_conditional: false
+        disc_in_channels: 3
+        disc_start: 0
+        disc_weight: 0.75
+        disc_num_layers: 2
+        codebook_weight: 1.0
+
+solver:
+  base_lr: 3.0e-6
+  adjust_lr: none # not adjust lr according to total batch_size
+  max_epochs: 100
+  save_epochs: 2
+  validation_epochs: 100
+  sample_iterations: epoch  # epoch #30000      # how many iterations to perform sampling once ?
+  print_specific_things: True
+
+  # config for ema
+  ema:
+    decay: 0.99
+    update_interval: 25
+    device: cpu
+
+  clip_grad_norm:
+    target: image_synthesis.engine.clip_grad_norm.ClipGradNorm
+    params:
+      start_iteration: 0
+      end_iteration: 5000
+      max_norm: 0.5
+  optimizers_and_schedulers: # a list of configures, so we can config several optimizers and schedulers
+  - name: none # default is None
+    optimizer:
+      target: torch.optim.AdamW
+      params: 
+        betas: !!python/tuple [0.9, 0.96]
+        weight_decay: 4.5e-2
+    scheduler:
+      step_iteration: 1
+      target: image_synthesis.engine.lr_scheduler.ReduceLROnPlateauWithWarmup
+      params:
+        factor: 0.5
+        patience: 100000
+        min_lr: 1.0e-6
+        threshold: 1.0e-1
+        threshold_mode: rel
+        warmup_lr: 4.5e-4 # the lr to be touched after warmup
+        warmup: 5000 
+
+dataloader:
+  batch_size: 32
+  num_workers: 4
+  train_datasets: # a list of configures, so we can combine several schedulers
+    - target: image_synthesis.data.imagenet_dataset.ImageNetDataset
+      params:
+        data_root: /scratch/anji/data/ImageNet/train
+        phase: train                                          ###########
+        input_file: filelist.txt                   ###########
+        drop_caption_rate: 0.0
+        im_preprocessor_config:
+          target: image_synthesis.data.utils.image_preprocessor.DalleTransformerPreprocessor
+          params:
+            size: 256
+            phase: train
+  validation_datasets:
+    - target: image_synthesis.data.imagenet_dataset.ImageNetDataset
+      params:
+        data_root: /scratch/anji/data/ImageNet/val
+        phase: val
+        input_file: filelist.txt
+        im_preprocessor_config:
+          target: image_synthesis.data.utils.image_preprocessor.DalleTransformerPreprocessor
+          params:
+            size: 256
+            phase: val

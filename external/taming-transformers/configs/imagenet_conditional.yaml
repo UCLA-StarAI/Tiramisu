@@ -1,0 +1,61 @@
+model:
+  base_learning_rate: 4.5e-06
+  target: taming.models.cond_transformer.Net2NetTransformer
+  params:
+    first_stage_key: image
+    cond_stage_key: class_label
+    transformer_config:
+      target: taming.modules.transformer.mingpt.GPT
+      params:
+        vocab_size: 16384
+        block_size: 256
+        n_layer: 16
+        n_head: 12
+        n_embd: 768
+    first_stage_config:
+      target: taming.models.vqgan.VQModel
+      params:
+        ckpt_path: models/coco_oi_epoch12.ckpt  # https://heibox.uni-heidelberg.de/f/78dea9589974474c97c1/
+        embed_dim: 256
+        n_embed: 16384
+        ddconfig:
+          double_z: false
+          z_channels: 256
+          resolution: 256
+          in_channels: 3
+          out_ch: 3
+          ch: 128
+          ch_mult:
+          - 1
+          - 1
+          - 2
+          - 2
+          - 4
+          num_res_blocks: 2
+          attn_resolutions:
+          - 16
+          dropout: 0.0
+        lossconfig:
+          target: taming.modules.losses.vqperceptual.DummyLoss
+    cond_stage_config:
+      target: taming.modules.util.Labelator
+      params:
+        n_classes: 1000
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 8
+    wrap: false
+    train:
+      target: taming.data.imagenet.ImageNetTrain
+      params:
+        root: /scratch/anji/data/ImageNet/train
+        num_samples: 100000
+        config:
+          size: 256
+    validation:
+      target: taming.data.imagenet.ImageNetValidation
+      params:
+        root: /scratch/anji/data/ImageNet/val
+        config:
+          size: 256
